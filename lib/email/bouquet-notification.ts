@@ -36,13 +36,11 @@ async function getRecipients(): Promise<{ email: string; name: string }[]> {
 
 type Params = {
   bouquetId: string;
-  title: string;
-  dedication: string | null;
   senderName: string;
 };
 
-/** Emails the recipient that a new bouquet arrived. The gift message is NOT included, to keep it a surprise. */
-export async function notifyRecipientNewBouquet({ bouquetId, title, dedication, senderName }: Params) {
+/** Emails the recipient that a new bouquet arrived. No title, dedication or letter is included, to keep it a surprise. */
+export async function notifyRecipientNewBouquet({ bouquetId, senderName }: Params) {
   const recipients = await getRecipients();
   if (!recipients.length) {
     console.warn("notifyRecipientNewBouquet: no recipient email found, skipping.");
@@ -62,14 +60,12 @@ export async function notifyRecipientNewBouquet({ bouquetId, title, dedication, 
     <div style="font-size:44px;line-height:1;">💐</div>
     <h1 style="font-size:24px;margin:16px 0 8px;color:#9d174d;font-weight:normal;">A new bouquet for you</h1>
     <p style="margin:0 0 4px;font-size:16px;">${hello}</p>
-    <p style="margin:0 0 20px;font-size:16px;"><strong>${esc(from)}</strong> made you a bouquet:</p>
-    <p style="margin:0 0 4px;font-size:20px;color:#9d174d;">“${esc(title)}”</p>
-    ${dedication ? `<p style="margin:0 0 20px;font-size:14px;color:#7a6168;font-style:italic;">${esc(dedication)}</p>` : `<div style="height:20px;"></div>`}
+    <p style="margin:0 0 24px;font-size:16px;"><strong>${esc(from)}</strong> made a surprise bouquet just for you. Tap below to see it ♡</p>
     <a href="${link}" style="display:inline-block;background:#d96c91;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:999px;font-size:16px;">Open your bouquet ♡</a>
     <p style="margin:24px 0 0;font-size:12px;color:#a08a91;">If the button doesn't work, copy this link:<br>${link}</p>
   </div>
 </div>`;
-    const text = `${r.name ? `Hi ${r.name},` : "Hi,"}\n\n${from} made you a new bouquet: "${title}"${dedication ? `\n${dedication}` : ""}\n\nOpen it here: ${link}\n`;
+    const text = `${r.name ? `Hi ${r.name},` : "Hi,"}\n\n${from} made a surprise bouquet just for you.\n\nOpen it here: ${link}\n`;
 
     await sendMail({ to: r.email, subject, html, text });
   }

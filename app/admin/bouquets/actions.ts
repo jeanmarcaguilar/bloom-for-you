@@ -99,8 +99,6 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
     try {
       await notifyRecipientNewBouquet({
         bouquetId: bq.id,
-        title: d.title,
-        dedication: d.dedication,
         senderName: owner.displayName,
       });
       emailSent = true;
