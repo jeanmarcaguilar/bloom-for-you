@@ -81,9 +81,9 @@ export default async function BouquetPage({ params }: { params: Promise<{ id: st
         </Link>
       </div>
 
-      <main className="relative z-10 mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col items-center justify-center gap-[3vh] px-6 py-16 text-center md:py-6">
+      <main className="relative z-10 mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col items-center justify-center gap-[3vh] px-4 py-16 text-center sm:px-6 md:py-6">
         {/* Bouquet, centered (no box): flowers + wrap + ribbon + every accessory that was chosen */}
-        <div className="bloom h-[clamp(260px,62vh,560px)] drop-shadow-[0_22px_26px_rgba(8,145,178,0.35)]">
+        <div className="bloom h-[clamp(200px,min(52vh,84vw),560px)] md:h-[clamp(260px,62vh,560px)] drop-shadow-[0_22px_26px_rgba(8,145,178,0.35)]">
           <BouquetDisplay bouquet={b} layout="beside" size={300} />
         </div>
 

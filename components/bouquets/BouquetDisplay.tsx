@@ -13,6 +13,16 @@ const SLOTS: React.CSSProperties[] = [
   { right: "-4%", bottom: "0%", height: "28%" },
 ];
 
+/* Phone-only positions for the "beside" layout (written out in full so Tailwind keeps them). */
+const BESIDE_MOBILE = [
+  "max-md:left-[-6%] max-md:bottom-0 max-md:h-[36%]",
+  "max-md:right-[-6%] max-md:bottom-0 max-md:h-[36%]",
+  "max-md:left-[-8%] max-md:bottom-[38%] max-md:h-[30%]",
+  "max-md:right-[-8%] max-md:bottom-[38%] max-md:h-[30%]",
+  "max-md:left-[6%] max-md:bottom-0 max-md:h-[26%]",
+  "max-md:right-[6%] max-md:bottom-0 max-md:h-[26%]",
+];
+
 /**
  * One saved bouquet with ALL of its design: flowers in their own color, wrap, ribbon, tag,
  * on-flower accessories (butterflies / fillers) and side accessories (teddy, balloon, ...).
@@ -50,10 +60,15 @@ export default function BouquetDisplay({
   );
 
   if (layout === "beside") {
+    /* Phones: accessories tuck onto the bouquet's edges so nothing overflows the screen.
+       md and up: they stand next to the bouquet. */
     return (
-      <div className="flex h-full items-end justify-center gap-3">
-        {side.map((a) => (
-          <div key={a} className="flex h-[40%] shrink-0 items-end [&>svg]:h-full [&>svg]:w-auto">
+      <div className="relative mx-auto flex h-full w-fit max-w-full items-end justify-center md:gap-3">
+        {side.map((a, i) => (
+          <div
+            key={a}
+            className={`pointer-events-none flex items-end max-md:absolute max-md:z-10 md:h-[40%] md:shrink-0 [&>svg]:h-full [&>svg]:w-auto ${BESIDE_MOBILE[i % BESIDE_MOBILE.length]}`}
+          >
             <AccessorySvg value={a} size={110} />
           </div>
         ))}

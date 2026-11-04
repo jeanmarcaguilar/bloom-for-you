@@ -95,9 +95,9 @@ export default async function Home() {
         <div className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-cyan-200/60 blur-3xl" aria-hidden />
 
         {/* peonies */}
-        <Peony className="pointer-events-none absolute -left-24 -top-24 w-[240px] -rotate-12 opacity-80 sm:-left-28 sm:-top-28 sm:w-[400px]" />
+        <Peony className="pointer-events-none absolute -left-20 -top-20 w-[170px] -rotate-12 opacity-80 sm:-left-28 sm:-top-28 sm:w-[400px]" />
         <Peony className="pointer-events-none absolute -right-28 top-[30%] hidden w-[300px] rotate-45 opacity-40 blur-[2px] sm:block" />
-        <Peony className="pointer-events-none absolute -bottom-24 -right-28 w-[280px] rotate-12 sm:-bottom-32 sm:-right-32 sm:w-[480px]" />
+        <Peony className="pointer-events-none absolute -bottom-20 -right-24 w-[190px] rotate-12 sm:-bottom-32 sm:-right-32 sm:w-[480px]" />
 
         {/* petals + sparkles */}
         {PETALS.map((p, i) => (
@@ -129,10 +129,10 @@ export default async function Home() {
           <header>
             {divider}
             <h1 className="mt-[1vh]">
-              <span className={`${display.className} block text-[clamp(1.6rem,5vh,3.5rem)] font-bold leading-tight tracking-wide text-ink`}>A Little World</span>
-              <span className={`${script.className} block text-[clamp(2.2rem,8vh,5.5rem)] leading-[1.05] text-rose drop-shadow-[0_2px_8px_rgba(255,255,255,0.9)]`}>Made Just for You</span>
+              <span className={`${display.className} block text-[clamp(1.25rem,4vh,3.5rem)] font-bold leading-tight tracking-wide text-ink`}>A Little World</span>
+              <span className={`${script.className} block text-[clamp(1.7rem,6.2vh,5.5rem)] leading-[1.05] text-rose drop-shadow-[0_2px_8px_rgba(255,255,255,0.9)]`}>Made Just for You</span>
             </h1>
-            <p className="mt-[1vh] text-[clamp(0.75rem,1.8vh,1rem)] text-mute">Every little thing here was saved with you in mind.</p>
+            <p className="mt-[1vh] text-[clamp(0.68rem,1.6vh,1rem)] text-mute">Every little thing here was saved with you in mind.</p>
             <div className="mx-auto mt-[1.2vh] h-0.5 w-14 rounded-full bg-gradient-to-r from-rose to-primary" aria-hidden />
           </header>
 
@@ -147,13 +147,13 @@ export default async function Home() {
           {!!gifts?.length && (
             <ul className="bfy-row flex w-max max-w-full gap-6 overflow-x-auto overflow-y-hidden px-3 pb-6 pt-2 snap-x snap-mandatory sm:gap-8">
               {gifts.map((b) => (
-                <li key={b.id} className="w-[clamp(210px,34vh,300px)] shrink-0 snap-center">
+                <li key={b.id} className="w-[clamp(150px,27vh,300px)] shrink-0 snap-center">
                   <Link href={`/bouquets/${b.id}`} className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                    <div className="flex h-[clamp(150px,33vh,300px)] justify-center drop-shadow-[0_18px_22px_rgba(8,145,178,0.35)] transition duration-300 group-hover:-translate-y-1.5 group-hover:scale-105 [&>svg]:h-full [&>svg]:w-auto">
+                    <div className="flex h-[clamp(120px,27vh,300px)] justify-center drop-shadow-[0_18px_22px_rgba(8,145,178,0.35)] transition duration-300 group-hover:-translate-y-1.5 group-hover:scale-105 [&>svg]:h-full [&>svg]:w-auto">
                       <BouquetDisplay bouquet={b} size={210} />
                     </div>
                     <div className="mx-auto mt-[1.5vh] flex w-full items-center rounded-full border border-white bg-white/60 py-1.5 pl-5 pr-1.5 shadow-sm backdrop-blur">
-                      <span className={`${display.className} flex-1 truncate text-center text-base font-medium text-ink`}>{b.title}</span>
+                      <span className={`${display.className} flex-1 truncate text-center text-sm font-medium text-ink sm:text-base`}>{b.title}</span>
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-rose text-white shadow-md transition group-hover:translate-x-0.5" aria-hidden><ArrowRight size={15} /></span>
                     </div>
                   </Link>
