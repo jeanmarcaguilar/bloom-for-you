@@ -4,8 +4,8 @@
   "description": "Send and view personalized digital flower bouquets",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFF7F8",
-  "theme_color": "#E5658C",
+  "background_color": "#F0FDFA",
+  "theme_color": "#06B6D4",
   "icons": [
     {
       "src": "/icon-192.png",

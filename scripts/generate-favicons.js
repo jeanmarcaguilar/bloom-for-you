@@ -5,27 +5,27 @@ const sharp = require('sharp');
 const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
     <radialGradient id="petal-grad" cx="50%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="#FCE7F0"/>
-      <stop offset="70%" stop-color="#F472B6"/>
-      <stop offset="100%" stop-color="#DB2777"/>
+      <stop offset="0%" stop-color="#E0F7FA"/>
+      <stop offset="60%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#0891B2"/>
     </radialGradient>
     <radialGradient id="center-grad" cx="40%" cy="40%" r="60%">
       <stop offset="0%" stop-color="#FEF08A"/>
       <stop offset="100%" stop-color="#EAB308"/>
     </radialGradient>
     <radialGradient id="bg-grad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#FFF5F8"/>
-      <stop offset="100%" stop-color="#FFE4EC"/>
+      <stop offset="0%" stop-color="#F0FDFA"/>
+      <stop offset="100%" stop-color="#E0F2FE"/>
     </radialGradient>
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#9D174D" flood-opacity="0.3"/>
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0E7490" flood-opacity="0.35"/>
     </filter>
   </defs>
-  <!-- Background circle for contrast on dark and light browser tabs -->
-  <circle cx="32" cy="32" r="30" fill="url(#bg-grad)" stroke="#FBCFE8" stroke-width="1.5"/>
-  <!-- Petals -->
+  <!-- Background circle for high contrast on dark and light browser tabs -->
+  <circle cx="32" cy="32" r="30" fill="url(#bg-grad)" stroke="#A5F3FC" stroke-width="1.5"/>
+  <!-- Cyan Petals -->
   <g transform="translate(32 32)" filter="url(#shadow)">
-    <g fill="url(#petal-grad)" stroke="#BE185D" stroke-width="0.8">
+    <g fill="url(#petal-grad)" stroke="#0E7490" stroke-width="0.8">
       <ellipse cy="-14" rx="8" ry="13.5"/>
       <ellipse cy="-14" rx="8" ry="13.5" transform="rotate(72)"/>
       <ellipse cy="-14" rx="8" ry="13.5" transform="rotate(144)"/>
@@ -34,7 +34,7 @@ const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" 
     </g>
     <!-- Flower Center -->
     <circle r="6.5" fill="url(#center-grad)" stroke="#CA8A04" stroke-width="0.8"/>
-    <circle r="3" fill="#FEF9C3" opacity="0.8"/>
+    <circle r="3" fill="#FEF9C3" opacity="0.85"/>
   </g>
 </svg>`;
 
@@ -49,7 +49,7 @@ async function run() {
   // 1. Write clean SVG to public and app
   fs.writeFileSync(path.join(publicDir, 'icon.svg'), svgContent, 'utf8');
   fs.writeFileSync(path.join(appDir, 'icon.svg'), svgContent, 'utf8');
-  console.log('Written icon.svg to public and app');
+  console.log('Written cyan icon.svg to public and app');
 
   const svgBuffer = Buffer.from(svgContent);
 
@@ -73,7 +73,6 @@ async function run() {
   // 3. Generate favicon.ico (ICO header containing 32x32 PNG)
   const png32Buffer = await sharp(svgBuffer).resize(32, 32).png().toBuffer();
   
-  // ICO header: 6 bytes ICONDIR + 16 bytes ICONDIRENTRY + image data
   const header = Buffer.alloc(6);
   header.writeUInt16LE(0, 0); // reserved
   header.writeUInt16LE(1, 2); // image type 1 = ICO
@@ -92,7 +91,7 @@ async function run() {
   const icoBuffer = Buffer.concat([header, entry, png32Buffer]);
   fs.writeFileSync(path.join(publicDir, 'favicon.ico'), icoBuffer);
   fs.writeFileSync(path.join(appDir, 'favicon.ico'), icoBuffer);
-  console.log('Generated favicon.ico in public and app');
+  console.log('Generated cyan favicon.ico in public and app');
 
   // 4. Generate site.webmanifest
   const manifest = {
@@ -101,8 +100,8 @@ async function run() {
     description: "Send and view personalized digital flower bouquets",
     start_url: "/",
     display: "standalone",
-    background_color: "#FFF7F8",
-    theme_color: "#E5658C",
+    background_color: "#F0FDFA",
+    theme_color: "#06B6D4",
     icons: [
       {
         src: "/icon-192.png",
@@ -121,4 +120,3 @@ async function run() {
 }
 
 run().catch(console.error);
-
