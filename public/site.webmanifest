@@ -1,0 +1,21 @@
+{
+  "name": "Bloom for You",
+  "short_name": "Bloom",
+  "description": "Send and view personalized digital flower bouquets",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF7F8",
+  "theme_color": "#E5658C",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
