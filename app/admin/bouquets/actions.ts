@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireOwner } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { BOUQUET_TYPES, QUANTITIES, WRAPS, RIBBONS, parseAccessories } from "@/lib/bouquet";
+import { notifyRecipientNewBouquet } from "@/lib/email/bouquet-notification";
 
 const vals = <T extends readonly { value: string }[]>(a: T) => a.map((x) => x.value) as [string, ...string[]];
 const schema = z.object({
@@ -92,6 +93,22 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
     if (!letterError) letterSaved = true;
   }
 
+  // Email the recipient. A mail failure must never break bouquet creation.
+  let emailSent = false;
+  if (bq?.id && status === "published") {
+    try {
+      await notifyRecipientNewBouquet({
+        bouquetId: bq.id,
+        title: d.title,
+        dedication: d.dedication,
+        senderName: owner.displayName,
+      });
+      emailSent = true;
+    } catch (err) {
+      console.error("Bouquet email notification failed:", err);
+    }
+  }
+
   revalidatePath("/bouquets");
   revalidatePath("/letters");
   revalidatePath("/admin");
@@ -99,8 +116,10 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
 
   return {
     success: true,
-    message: letterSaved
-      ? "Bouquet and Love Letter created together beautifully!"
-      : "Bouquet saved successfully!",
+    message:
+      (letterSaved
+        ? "Bouquet and Love Letter created together beautifully!"
+        : "Bouquet saved successfully!") +
+      (emailSent ? " Email notification sent ♡" : " (Email notification could not be sent.)"),
   };
 }
