@@ -5,10 +5,10 @@ import Link from "next/link";
 import BouquetDisplay from "@/components/bouquets/BouquetDisplay";
 import MusicPlayer from "@/components/music/MusicPlayer";
 import { Flower2, Mail, Camera, Gift, Plus, PenLine, LogOut, Eye, Heart, ArrowUpRight, ArrowRight, User } from "lucide-react";
-import { Playfair_Display, Great_Vibes } from "next/font/google";
 
-const display = Playfair_Display({ subsets: ["latin"], weight: ["500", "700"], style: ["normal", "italic"] });
-const script = Great_Vibes({ subsets: ["latin"], weight: "400" });
+
+const display = { className: "font-playfair" };
+const script = { className: "font-vibes" };
 
 /* ───────── Decorative pieces for the recipient page ───────── */
 function Peony({ className = "" }: { className?: string }) {

@@ -56,3 +56,8 @@ body {
   -webkit-backface-visibility: hidden;
 }
 
+
+/* Fonts are loaded from Google in layout.tsx (so the build never has to download them). */
+.font-playfair { font-family: "Playfair Display", Georgia, serif; }
+.font-vibes    { font-family: "Great Vibes", "Brush Script MT", cursive; }
+.font-caveat   { font-family: "Caveat", "Comic Sans MS", cursive; }

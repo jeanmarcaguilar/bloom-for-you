@@ -1,9 +1,9 @@
 import LoginForm from "./login-form";
 import { Flower2, Heart } from "lucide-react";
-import { Playfair_Display, Great_Vibes } from "next/font/google";
 
-const display = Playfair_Display({ subsets: ["latin"], weight: ["500", "700"], style: ["normal", "italic"] });
-const script = Great_Vibes({ subsets: ["latin"], weight: "400" });
+
+const display = { className: "font-playfair" };
+const script = { className: "font-vibes" };
 
 export const metadata = { title: "Welcome · Bloom for You" };
 

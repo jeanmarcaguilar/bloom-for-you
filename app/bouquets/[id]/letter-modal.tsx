@@ -2,9 +2,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Heart, Mail, X } from "lucide-react";
-import { Caveat } from "next/font/google";
 
-const hand = Caveat({ subsets: ["latin"], weight: ["500", "700"] });
+
+const hand = { className: "font-caveat" };
 
 type Props = { greeting: string; message: string; dedication?: string | null; title: string };
 
