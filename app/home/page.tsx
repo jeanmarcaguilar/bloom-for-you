@@ -116,7 +116,8 @@ export default async function Home() {
       <div className="relative flex h-dvh flex-col overflow-hidden bg-gradient-to-br from-[#f0fdff] via-[#b6f1f9] to-[#7fe3f1]">
         <style>{`html,body{height:100%;overflow:hidden}
 @keyframes bfy-drift{0%,100%{transform:translateY(0) rotate(var(--r))}50%{transform:translateY(-14px) rotate(calc(var(--r) + 14deg))}}
-@media (prefers-reduced-motion:reduce){.bfy-petal{animation:none!important}}`}</style>
+@media (prefers-reduced-motion:reduce){.bfy-petal{animation:none!important}}
+html[data-moving] .bfy-petal{animation-play-state:paused}`}</style>
 
         {/* soft haze */}
         <div className="pointer-events-none absolute left-1/2 top-[45%] h-[70vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(closest-side,rgba(255,255,255,0.6),transparent)]" aria-hidden />
