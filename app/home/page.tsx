@@ -2,62 +2,90 @@ import { requireUser } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
 import Link from "next/link";
-import BouquetDisplay from "@/components/bouquets/BouquetDisplay";
+import dynamic from "next/dynamic";
+import { Flower2, Mail, Camera, Gift, Plus, PenLine, LogOut, Eye, Heart, ArrowUpRight, ArrowRight } from "lucide-react";
+
+const BouquetDisplay = dynamic(() => import("@/components/bouquets/BouquetDisplay"), {
+  loading: () => <div className="h-full w-full animate-pulse bg-gradient-to-b from-pink-50 to-transparent rounded-2xl" />,
+  ssr: true
+});
+
 import MusicPlayer from "@/components/music/MusicPlayer";
-import { Flower2, Mail, Camera, Gift, Plus, PenLine, LogOut, Eye, Heart, ArrowUpRight, ArrowRight, User } from "lucide-react";
+import BouquetCarousel from "@/components/bouquets/BouquetCarousel";
 
 
 const display = { className: "font-playfair" };
 const script = { className: "font-vibes" };
 
 /* ───────── Decorative pieces for the recipient page ───────── */
-function Peony({ className = "" }: { className?: string }) {
-  const ring = (n: number, cy: number, rx: number, ry: number, off: number, fill: string) =>
-    Array.from({ length: n }, (_, i) => (
-      <ellipse key={`${fill}${i}`} cx="200" cy={cy} rx={rx} ry={ry} fill={fill}
-        stroke="#fff" strokeOpacity=".35" strokeWidth="1.5" transform={`rotate(${off + (360 / n) * i} 200 200)`} />
-    ));
+const petalPath = (L: number, W: number) =>
+  `M0 0C${-W * 0.95} ${-L * 0.2} ${-W * 1.2} ${-L * 0.76} ${-W * 0.5} ${-L * 0.96}` +
+  `Q${-W * 0.28} ${-L * 1.03} ${-W * 0.1} ${-L * 0.97}Q0 ${-L * 0.94} ${W * 0.1} ${-L * 0.97}` +
+  `Q${W * 0.28} ${-L * 1.03} ${W * 0.5} ${-L * 0.96}C${W * 1.2} ${-L * 0.76} ${W * 0.95} ${-L * 0.2} 0 0Z`;
+
+/* big, soft, see-through peony (static, no filters, so it costs almost nothing to paint) */
+function Peony({ id, className = "" }: { id: string; className?: string }) {
+  const rings = [
+    { n: 9, L: 190, W: 70, off: 0, o: 0.55 },
+    { n: 8, L: 150, W: 60, off: 12, o: 0.65 },
+    { n: 7, L: 110, W: 50, off: 24, o: 0.75 },
+    { n: 6, L: 72, W: 38, off: 6, o: 0.85 },
+  ];
   return (
     <svg viewBox="0 0 400 400" className={className} aria-hidden>
       <defs>
-        <radialGradient id="peO" cx="50%" cy="85%" r="90%"><stop offset="0" stopColor="#06b6d4" /><stop offset="1" stopColor="#cffafe" /></radialGradient>
-        <radialGradient id="peM" cx="50%" cy="85%" r="90%"><stop offset="0" stopColor="#0891b2" /><stop offset="1" stopColor="#a5f3fc" /></radialGradient>
-        <radialGradient id="peI" cx="50%" cy="85%" r="90%"><stop offset="0" stopColor="#0e7490" /><stop offset="1" stopColor="#67e8f9" /></radialGradient>
-        <radialGradient id="peC"><stop offset="0" stopColor="#ecfeff" /><stop offset="1" stopColor="#22d3ee" /></radialGradient>
-        <filter id="peBlur"><feGaussianBlur stdDeviation="1.6" /></filter>
+        <linearGradient id={`${id}g`} x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stopColor="#22b8d6" stopOpacity=".7" />
+          <stop offset=".5" stopColor="#a5f3fc" stopOpacity=".6" />
+          <stop offset="1" stopColor="#fff" stopOpacity=".95" />
+        </linearGradient>
+        <radialGradient id={`${id}c`}><stop offset="0" stopColor="#fff" /><stop offset="1" stopColor="#67e8f9" /></radialGradient>
       </defs>
-      <g filter="url(#peBlur)" opacity=".92">
-        {ring(9, 105, 64, 100, 0, "url(#peO)")}
-        {ring(7, 135, 52, 76, 25, "url(#peM)")}
-        {ring(6, 160, 38, 54, 10, "url(#peI)")}
-        <circle cx="200" cy="200" r="22" fill="url(#peC)" />
-      </g>
+      {rings.map((r, ri) =>
+        Array.from({ length: r.n }, (_, i) => (
+          <g key={`${ri}-${i}`} transform={`translate(200 200) rotate(${r.off + (360 / r.n) * i + ((i * 7 + ri * 3) % 5) * 2}) translate(0 -6)`} opacity={r.o}>
+            <path d={petalPath(r.L, r.W)} fill={`url(#${id}g)`} stroke="#fff" strokeOpacity=".8" strokeWidth="1.4" />
+            <path d={`M0 ${-r.L * 0.08}L0 ${-r.L * 0.8}M0 ${-r.L * 0.1}Q${-r.W * 0.3} ${-r.L * 0.45} ${-r.W * 0.5} ${-r.L * 0.78}M0 ${-r.L * 0.1}Q${r.W * 0.3} ${-r.L * 0.45} ${r.W * 0.5} ${-r.L * 0.78}`} fill="none" stroke="#fff" strokeOpacity=".4" strokeWidth=".9" />
+          </g>
+        ))
+      )}
+      <circle cx="200" cy="200" r="16" fill={`url(#${id}c)`} />
     </svg>
   );
 }
 
-function Petal({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
+function Leaf({ id, className = "" }: { id: string; className?: string }) {
   return (
-    <svg viewBox="0 0 20 34" className={`pointer-events-none absolute ${className}`} style={style} aria-hidden>
-      <defs><linearGradient id="ptl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#a5f3fc" /><stop offset="1" stopColor="#06b6d4" /></linearGradient></defs>
-      <path d="M10 0C22 6 22 24 10 34 -2 24 -2 6 10 0Z" fill="url(#ptl)" opacity=".8" />
+    <svg viewBox="-60 -190 120 200" className={`pointer-events-none absolute ${className}`} aria-hidden>
+      <defs>
+        <linearGradient id={id} x1="0" y1="1" x2=".4" y2="0">
+          <stop offset="0" stopColor="#22b8d6" stopOpacity=".75" />
+          <stop offset="1" stopColor="#e0fbff" stopOpacity=".85" />
+        </linearGradient>
+      </defs>
+      <path d="M0 0C42 -38 46 -120 0 -184 -46 -120 -42 -38 0 0Z" fill={`url(#${id})`} stroke="#fff" strokeOpacity=".7" strokeWidth="1.5" />
+      <path d="M0 -4L0 -170" stroke="#fff" strokeOpacity=".55" strokeWidth="1.4" fill="none" />
     </svg>
   );
 }
 
-function Sparkle({ className = "", size = 18 }: { className?: string; size?: number }) {
+function Petal({ className = "", style, tone = "cyan" }: { className?: string; style?: React.CSSProperties; tone?: "cyan" | "pink" }) {
+  const [a, b] = tone === "pink" ? ["#fbcfe8", "#f9a8d4"] : ["#cffafe", "#22d3ee"];
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" className={`pointer-events-none absolute text-primary/70 ${className}`} aria-hidden>
-      <path d="M12 0C12.8 7 17 11.2 24 12 17 12.8 12.8 17 12 24 11.2 17 7 12.8 0 12 7 11.2 11.2 7 12 0Z" fill="currentColor" />
+    <svg viewBox="0 0 20 34" className={`bfy-petal pointer-events-none absolute will-change-transform ${className}`} style={style} aria-hidden>
+      <defs><linearGradient id={`ptl-${tone}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={a} /><stop offset="1" stopColor={b} /></linearGradient></defs>
+      <path d="M10 0C22 6 22 24 10 34 -2 24 -2 6 10 0Z" fill={`url(#ptl-${tone})`} opacity=".85" />
     </svg>
   );
 }
 
-const PETALS: { l: string; t: string; r: number; s: number; d: number }[] = [
-  { l: "26%", t: "20%", r: -40, s: 1.3, d: 0 }, { l: "9%", t: "36%", r: 70, s: 1.1, d: 1.5 },
-  { l: "5%", t: "58%", r: -20, s: 1.6, d: 3 }, { l: "20%", t: "86%", r: 120, s: 1.2, d: 2 },
-  { l: "92%", t: "20%", r: 50, s: 1.5, d: 1 }, { l: "86%", t: "35%", r: -70, s: 1, d: 2.5 },
-  { l: "77%", t: "52%", r: 100, s: 1.3, d: 0.5 }, { l: "74%", t: "72%", r: -30, s: 0.9, d: 3.5 },
+const PETALS: { l: string; t: string; r: number; s: number; d: number; tone: "cyan" | "pink" }[] = [
+  { l: "30%", t: "14%", r: -40, s: 1.4, d: 0, tone: "cyan" },
+  { l: "12%", t: "52%", r: 70, s: 1.2, d: 1.5, tone: "cyan" },
+  { l: "22%", t: "84%", r: 120, s: 1.5, d: 2, tone: "pink" },
+  { l: "80%", t: "12%", r: 50, s: 1.5, d: 1, tone: "cyan" },
+  { l: "84%", t: "30%", r: -70, s: 1.2, d: 2.5, tone: "pink" },
+  { l: "76%", t: "86%", r: 100, s: 1.2, d: 3, tone: "cyan" },
 ];
 
 const label = (c: string) => c.replace(/_/g, " ").replace(/^\w/, (m) => m.toUpperCase());
@@ -74,7 +102,7 @@ export default async function Home() {
     const { data: gifts, error } = await supabase
       .from("bouquets")
       .select("id, title, flower_type, flower_items, quantity, flower_color, wrapping_style, ribbon_style, dedication")
-      .eq("status", "published").order("created_at", { ascending: false });
+      .eq("status", "published").order("created_at", { ascending: false }).limit(12);
 
     const divider = (
       <div className="mx-auto flex items-center justify-center gap-3" aria-hidden>
@@ -85,43 +113,37 @@ export default async function Home() {
     );
 
     return (
-      <div className="relative flex h-dvh flex-col overflow-hidden bg-gradient-to-br from-[#ecfeff] via-[#a5f3fc] to-[#67e8f9]">
+      <div className="relative flex h-dvh flex-col overflow-hidden bg-gradient-to-br from-[#f0fdff] via-[#b6f1f9] to-[#7fe3f1]">
         <style>{`html,body{height:100%;overflow:hidden}
 @keyframes bfy-drift{0%,100%{transform:translateY(0) rotate(var(--r))}50%{transform:translateY(-14px) rotate(calc(var(--r) + 14deg))}}
-.bfy-row{scrollbar-width:none}.bfy-row::-webkit-scrollbar{display:none}`}</style>
+@media (prefers-reduced-motion:reduce){.bfy-petal{animation:none!important}}`}</style>
 
         {/* soft haze */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[60vh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/50 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-cyan-200/60 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute left-1/2 top-[45%] h-[70vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(closest-side,rgba(255,255,255,0.6),transparent)]" aria-hidden />
 
-        {/* peonies */}
-        <Peony className="pointer-events-none absolute -left-20 -top-20 w-[170px] -rotate-12 opacity-80 sm:-left-28 sm:-top-28 sm:w-[400px]" />
-        <Peony className="pointer-events-none absolute -right-28 top-[30%] hidden w-[300px] rotate-45 opacity-40 blur-[2px] sm:block" />
-        <Peony className="pointer-events-none absolute -bottom-20 -right-24 w-[190px] rotate-12 sm:-bottom-32 sm:-right-32 sm:w-[480px]" />
-
-        {/* petals + sparkles */}
-        {PETALS.map((p, i) => (
-          <Petal key={i} className="hidden sm:block" style={{ left: p.l, top: p.t, width: 20 * p.s, ["--r" as any]: `${p.r}deg`, animation: `bfy-drift ${7 + (i % 3)}s ease-in-out ${p.d}s infinite` }} />
-        ))}
-        <Sparkle className="left-[22%] top-[34%] hidden sm:block" size={26} />
-        <Sparkle className="left-[14%] top-[70%] hidden sm:block" size={18} />
-        <Sparkle className="right-[22%] top-[14%] hidden sm:block" size={16} />
-        <Sparkle className="right-[6%] top-[9%] hidden sm:block" size={14} />
-
-        {/* curved line with outline heart */}
-        <svg viewBox="0 0 900 260" className="pointer-events-none absolute right-0 top-0 hidden h-[260px] w-[min(62vw,900px)] lg:block" aria-hidden fill="none" stroke="#c2476f" strokeWidth="1.4" strokeLinecap="round">
-          <path d="M0 150 C 90 160 170 150 250 120 C 330 90 360 60 400 70 C 430 78 440 108 410 124 C 384 138 360 112 372 92 C 392 62 440 78 470 118 C 520 96 640 92 760 40 C 810 18 850 -10 880 -40" opacity=".55" />
+        {/* big translucent peonies, leaves and a gentle wave */}
+        <Leaf id="lfa" className="-left-8 top-[30%] hidden w-[140px] rotate-[105deg] sm:block" />
+        <Leaf id="lfb" className="-bottom-6 left-[2%] hidden w-[170px] rotate-[60deg] sm:block" />
+        <Peony id="pa" className="pointer-events-none absolute -left-24 -top-28 w-[300px] -rotate-12 sm:-left-36 sm:-top-44 sm:w-[580px]" />
+        <Peony id="pb" className="pointer-events-none absolute -bottom-28 -right-24 w-[260px] rotate-[20deg] sm:-bottom-48 sm:-right-40 sm:w-[560px]" />
+        <svg className="pointer-events-none absolute inset-x-0 bottom-0 h-[20vh] w-full" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden>
+          <path d="M0 120C240 60 420 200 720 140S1200 60 1440 130V220H0Z" fill="#fff" fillOpacity=".28" />
+          <path d="M0 170C300 110 520 220 820 170S1250 120 1440 175V220H0Z" fill="#a5f3fc" fillOpacity=".4" />
         </svg>
+
+        {/* drifting petals */}
+        {PETALS.map((p, i) => (
+          <Petal key={i} tone={p.tone} className="hidden sm:block" style={{ left: p.l, top: p.t, width: 20 * p.s, ["--r" as any]: `${p.r}deg`, animation: `bfy-drift ${7 + (i % 3)}s ease-in-out ${p.d}s infinite` }} />
+        ))}
 
         <MusicPlayer src="/music/home.mp3" />
 
         {/* top bar */}
-        <div className="relative z-10 flex shrink-0 items-center justify-between px-6 py-4 sm:px-10">
-          <span className="flex items-center gap-3 text-ink">
-            <Flower2 size={30} className="text-rose" aria-hidden />
-            <span className="text-sm sm:text-base">Hello, {name} <Heart size={15} className="ml-0.5 inline fill-rose text-rose" aria-hidden /></span>
+        <div className="relative z-10 flex shrink-0 items-center justify-between px-5 py-4 sm:px-10">
+          <span className="flex items-center gap-2.5 rounded-full bg-white/55 px-4 py-2 text-ink shadow-md ring-1 ring-white/80 backdrop-blur-sm">
+            <Flower2 size={22} className="text-pink-500" aria-hidden />
+            <span className="text-sm sm:text-base">Hello, {name} <Heart size={14} className="ml-0.5 inline fill-pink-500 text-pink-500" aria-hidden /></span>
           </span>
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-rose shadow-md ring-1 ring-white" aria-hidden><User size={18} fill="currentColor" /></span>
         </div>
 
         {/* everything below fits the screen height, so the page never scrolls */}
@@ -130,43 +152,31 @@ export default async function Home() {
             {divider}
             <h1 className="mt-[1vh]">
               <span className={`${display.className} block text-[clamp(1.25rem,4vh,3.5rem)] font-bold leading-tight tracking-wide text-ink`}>A Little World</span>
-              <span className={`${script.className} block text-[clamp(1.7rem,6.2vh,5.5rem)] leading-[1.05] text-rose drop-shadow-[0_2px_8px_rgba(255,255,255,0.9)]`}>Made Just for You</span>
+              <span className={`${script.className} block text-[clamp(1.7rem,6.2vh,5.5rem)] leading-[1.05] text-[#e11d5f] drop-shadow-[0_2px_8px_rgba(255,255,255,0.9)]`}>Made Just for You</span>
             </h1>
-            <p className="mt-[1vh] text-[clamp(0.68rem,1.6vh,1rem)] text-mute">Every little thing here was saved with you in mind.</p>
-            <div className="mx-auto mt-[1.2vh] h-0.5 w-14 rounded-full bg-gradient-to-r from-rose to-primary" aria-hidden />
+            <p className={`${display.className} mt-[1vh] text-[clamp(0.7rem,1.7vh,1.05rem)] text-ink/75`}>Every little thing here was saved with you in mind.</p>
+            <div className="mt-[1vh]">{divider}</div>
           </header>
 
           {error && <p role="alert" className="text-rose">Bouquets couldn't load. Please try again.</p>}
           {!error && !gifts?.length && (
-            <div className="max-w-md rounded-[2rem] border border-white/70 bg-white/50 p-8 text-mute backdrop-blur-xl">
+            <div className="max-w-md rounded-[2rem] border border-white/70 bg-white/70 p-8 text-mute">
               No bouquets have arrived yet. Come back soon ♡
             </div>
           )}
 
-          {/* bouquets: centered when few, swipe sideways when many (no page scroll) */}
           {!!gifts?.length && (
-            <ul className="bfy-row flex w-max max-w-full gap-6 overflow-x-auto overflow-y-hidden px-3 pb-6 pt-2 snap-x snap-mandatory sm:gap-8">
-              {gifts.map((b) => (
-                <li key={b.id} className="w-[clamp(150px,27vh,300px)] shrink-0 snap-center">
-                  <Link href={`/bouquets/${b.id}`} className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                    <div className="flex h-[clamp(120px,27vh,300px)] justify-center drop-shadow-[0_18px_22px_rgba(8,145,178,0.35)] transition duration-300 group-hover:-translate-y-1.5 group-hover:scale-105 [&>svg]:h-full [&>svg]:w-auto">
-                      <BouquetDisplay bouquet={b} size={210} />
-                    </div>
-                    <div className="mx-auto mt-[1.5vh] flex w-full items-center rounded-full border border-white bg-white/60 py-1.5 pl-5 pr-1.5 shadow-sm backdrop-blur">
-                      <span className={`${display.className} flex-1 truncate text-center text-sm font-medium text-ink sm:text-base`}>{b.title}</span>
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-rose text-white shadow-md transition group-hover:translate-x-0.5" aria-hidden><ArrowRight size={15} /></span>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <BouquetCarousel
+              titleClass={display.className}
+              items={gifts.map((b) => ({ id: b.id, title: b.title, art: <BouquetDisplay bouquet={b} size={210} /> }))}
+            />
           )}
 
           <footer>
             {divider}
-            <p className={`${display.className} mt-[1vh] text-[clamp(0.8rem,1.9vh,1rem)] italic text-rose/80`}>{footer} <Heart size={14} className="ml-1 inline text-rose" aria-hidden /></p>
+            <p className={`${display.className} mt-[1vh] text-[clamp(0.8rem,1.9vh,1rem)] italic text-ink/80`}>{footer} <Heart size={15} className="ml-1 inline text-pink-500" aria-hidden /></p>
             <form action={signOut} className="mt-[1.5vh]">
-              <button className="inline-flex items-center gap-2 rounded-full border border-rose/50 bg-white/50 px-6 py-2 text-sm font-medium text-rose shadow-sm backdrop-blur transition hover:bg-white hover:shadow-md active:scale-95">
+              <button className="inline-flex items-center gap-2 rounded-full border border-pink-400/70 bg-white/60 px-6 py-2 text-sm font-medium text-pink-600 shadow-sm transition-colors hover:bg-white hover:shadow-md active:scale-95">
                 <LogOut size={16} aria-hidden /> Sign Out
               </button>
             </form>
@@ -188,10 +198,10 @@ export default async function Home() {
       const { count } = await supabase.from(table).select("*", { count: "exact", head: true });
       return count ?? 0;
     })),
-    supabase.from("letters").select("id, title, preview, category").order("created_at", { ascending: false }),
+    supabase.from("letters").select("id, title, preview, category").order("created_at", { ascending: false }).limit(4),
     supabase.from("bouquets")
       .select("id, title, flower_type, flower_items, quantity, flower_color, wrapping_style, ribbon_style, dedication")
-      .eq("status", "published").order("created_at", { ascending: false }),
+      .eq("status", "published").order("created_at", { ascending: false }).limit(6),
   ]);
   const letters = lettersR.data, bouquets = bouquetsR.data;
 
@@ -213,8 +223,8 @@ export default async function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-cyan-100 via-cyan-50 to-white">
       {/* soft background glows */}
-      <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-blush/50 blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute -right-24 top-40 h-80 w-80 rounded-full bg-primary/15 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 bg-blush/50 [mask-image:radial-gradient(closest-side,#000,transparent)]" aria-hidden />
+      <div className="pointer-events-none absolute -right-24 top-40 h-80 w-80 bg-primary/25 [mask-image:radial-gradient(closest-side,#000,transparent)]" aria-hidden />
 
       <main className="relative mx-auto max-w-5xl px-6 py-10">
         {/* Top bar */}
@@ -226,7 +236,7 @@ export default async function Home() {
         </div>
 
         {/* Hero */}
-        <header className="mt-8 rounded-3xl border border-blush/60 bg-white/70 p-8 text-center shadow-sm backdrop-blur-md sm:p-10">
+        <header className="mt-8 rounded-3xl border border-blush/60 bg-white/85 p-8 text-center shadow-sm sm:p-10">
           <p className="text-sm tracking-wide text-mute">Hello, {user.displayName || "owner"} ♡</p>
           <h1 className="mt-2 font-serif text-4xl text-rose sm:text-5xl">Your Dashboard</h1>
           <p className="mx-auto mt-3 max-w-md text-mute">Everything you've made for {name}, all in one little place.</p>
@@ -239,7 +249,7 @@ export default async function Home() {
         {/* Stats */}
         <ul className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {stats.map(({ label, Icon }, i) => (
-            <li key={label} className="flex items-center gap-3 rounded-2xl border border-blush/60 bg-white/80 p-4 shadow-xs backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md">
+            <li key={label} className="flex items-center gap-3 rounded-2xl border border-blush/60 bg-white/85 p-4 shadow-xs transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-md">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blush/70 to-pink-100 text-rose"><Icon size={20} aria-hidden /></span>
               <div>
                 <p className="font-serif text-2xl leading-none text-rose">{counts[i]}</p>
@@ -250,7 +260,7 @@ export default async function Home() {
         </ul>
 
         {/* Posted bouquets */}
-        <section className="mt-14" aria-labelledby="bouquets-h">
+        <section className="mt-14 [content-visibility:auto] [contain-intrinsic-size:auto_700px] -mx-4 px-4 pb-6" aria-labelledby="bouquets-h">
           <SectionHead id="bouquets-h" title="Posted Bouquets" sub="The bouquets you've sent with love" href="/bouquets" />
           {bouquetsR.error && <p role="alert" className="mt-5 text-rose">Bouquets couldn't load. Please try again.</p>}
           {!bouquetsR.error && !bouquets?.length && (
@@ -259,11 +269,11 @@ export default async function Home() {
             </div>
           )}
           <ul className="mt-5 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-            {bouquets?.map((b) => (
+            {bouquets?.slice(0, 6).map((b) => (
               <li key={b.id}>
-                <Link href={`/bouquets/${b.id}`} className="group relative flex h-full flex-col items-center rounded-3xl border border-blush/60 bg-white/85 p-5 shadow-xs transition duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <Link href={`/bouquets/${b.id}`} className="group relative flex h-full flex-col items-center rounded-3xl border border-blush/60 bg-white/85 p-5 shadow-xs transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   <ArrowUpRight size={16} className="absolute right-3 top-3 text-primary opacity-0 transition group-hover:opacity-100" aria-hidden />
-                  <div className="h-[190px] rounded-2xl bg-gradient-to-b from-pink-50 to-transparent p-2 transition group-hover:scale-105">
+                  <div className="h-[190px] rounded-2xl bg-gradient-to-b from-pink-50 to-transparent p-2 transition-transform group-hover:scale-105">
                     <BouquetDisplay bouquet={b} size={130} />
                   </div>
                   <span className="mt-3 text-center font-serif text-ink">{b.title}</span>
@@ -271,10 +281,17 @@ export default async function Home() {
               </li>
             ))}
           </ul>
+          {bouquets && bouquets.length > 6 && (
+            <div className="mt-6 text-center">
+              <Link href="/bouquets" className="inline-flex items-center gap-2 rounded-full border border-blush bg-white/85 px-6 py-2.5 text-sm font-medium text-rose shadow-sm transition hover:bg-white hover:shadow-md">
+                View All {bouquets.length} Bouquets <ArrowRight size={16} aria-hidden />
+              </Link>
+            </div>
+          )}
         </section>
 
         {/* Letters */}
-        <section className="mt-14" aria-labelledby="letters-h">
+        <section className="mt-14 [content-visibility:auto] [contain-intrinsic-size:auto_500px] -mx-4 px-4 pb-6" aria-labelledby="letters-h">
           <SectionHead id="letters-h" title="Letters" sub="Words you've written from the heart" href="/letters" />
           {lettersR.error && <p role="alert" className="mt-5 text-rose">Letters couldn't load. Please try again.</p>}
           {!lettersR.error && !letters?.length && (
@@ -283,9 +300,9 @@ export default async function Home() {
             </div>
           )}
           <ul className="mt-5 grid gap-4 sm:grid-cols-2">
-            {letters?.map((l) => (
+            {letters?.slice(0, 4).map((l) => (
               <li key={l.id}>
-                <Link href={`/letters/${l.id}`} className="group block h-full rounded-2xl border border-blush/60 border-l-4 border-l-primary bg-white/85 p-5 shadow-xs transition duration-300 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <Link href={`/letters/${l.id}`} className="group block h-full rounded-2xl border border-blush/60 border-l-4 border-l-primary bg-white/85 p-5 shadow-xs transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   <p className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary"><Mail size={12} aria-hidden /> {label(l.category)}</p>
                   <p className="mt-2 font-serif text-xl text-ink">{l.title}</p>
                   {l.preview && <p className="mt-1 line-clamp-2 text-sm text-mute">{l.preview}</p>}
@@ -293,6 +310,13 @@ export default async function Home() {
               </li>
             ))}
           </ul>
+          {letters && letters.length > 4 && (
+            <div className="mt-6 text-center">
+              <Link href="/letters" className="inline-flex items-center gap-2 rounded-full border border-blush bg-white/85 px-6 py-2.5 text-sm font-medium text-rose shadow-sm transition hover:bg-white hover:shadow-md">
+                View All {letters.length} Letters <ArrowRight size={16} aria-hidden />
+              </Link>
+            </div>
+          )}
         </section>
 
         <footer className="mt-16 text-center text-sm text-mute">{footer} ♡</footer>
