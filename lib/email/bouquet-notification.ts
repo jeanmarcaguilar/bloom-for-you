@@ -57,8 +57,9 @@ const SERIF = "Georgia,'Times New Roman',serif";
 /** Email-safe (table based, inline styles) HTML for the notification. */
 function renderHtml({ hello, from, link, site }: { hello: string; from: string; link: string; site: string }) {
   // Images live in /public/email and must be reachable over public https (not localhost) for real inboxes.
-  const bgUrl = `${site}/email/bouquet-bg.jpg`;
-  const flowerUrl = `${site}/email/bouquet-flower.png`;
+  // Using GitHub raw URLs as fallback for reliable image delivery
+  const bgUrl = "https://raw.githubusercontent.com/jeanmarcaguilar/bloom-for-you/main/public/email/bouquet-bg.jpg";
+  const flowerUrl = "https://raw.githubusercontent.com/jeanmarcaguilar/bloom-for-you/main/public/email/bouquet-flower.png";
   return `<!doctype html>
 <html lang="en">
 <head>
