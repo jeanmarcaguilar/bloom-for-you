@@ -3,90 +3,30 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Flower2, Mail, Camera, Gift, Plus, PenLine, LogOut, Eye, Heart, ArrowUpRight, ArrowRight } from "lucide-react";
+import { Flower2, Mail, Camera, Gift, Plus, PenLine, LogOut, Eye, Heart, ArrowUpRight, ArrowRight, ChevronRight } from "lucide-react";
 
 const BouquetDisplay = dynamic(() => import("@/components/bouquets/BouquetDisplay"), {
   loading: () => <div className="h-full w-full animate-pulse bg-gradient-to-b from-pink-50 to-transparent rounded-2xl" />,
   ssr: true
 });
 
-import MusicPlayer from "@/components/music/MusicPlayer";
-import BouquetCarousel from "@/components/bouquets/BouquetCarousel";
+const BloomBackdrop = dynamic(() => import("@/components/BloomBackdrop"));
+
+const MusicPlayer = dynamic(() => import("@/components/music/MusicPlayer"));
+
+const BouquetCarousel = dynamic(() => import("@/components/bouquets/BouquetCarousel"), {
+  loading: () => (
+    <div className="relative shrink-0 w-full" style={{ height: "clamp(260px,52vh,560px)" }}>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse bg-gradient-to-b from-pink-50 to-transparent rounded-3xl w-[clamp(200px,30vw,350px)] h-[clamp(240px,45vh,400px)]" />
+      </div>
+    </div>
+  )
+});
 
 
 const display = { className: "font-playfair" };
 const script = { className: "font-vibes" };
-
-/* ───────── Decorative pieces for the recipient page ───────── */
-const petalPath = (L: number, W: number) =>
-  `M0 0C${-W * 0.95} ${-L * 0.2} ${-W * 1.2} ${-L * 0.76} ${-W * 0.5} ${-L * 0.96}` +
-  `Q${-W * 0.28} ${-L * 1.03} ${-W * 0.1} ${-L * 0.97}Q0 ${-L * 0.94} ${W * 0.1} ${-L * 0.97}` +
-  `Q${W * 0.28} ${-L * 1.03} ${W * 0.5} ${-L * 0.96}C${W * 1.2} ${-L * 0.76} ${W * 0.95} ${-L * 0.2} 0 0Z`;
-
-/* big, soft, see-through peony (static, no filters, so it costs almost nothing to paint) */
-function Peony({ id, className = "" }: { id: string; className?: string }) {
-  const rings = [
-    { n: 9, L: 190, W: 70, off: 0, o: 0.55 },
-    { n: 8, L: 150, W: 60, off: 12, o: 0.65 },
-    { n: 7, L: 110, W: 50, off: 24, o: 0.75 },
-    { n: 6, L: 72, W: 38, off: 6, o: 0.85 },
-  ];
-  return (
-    <svg viewBox="0 0 400 400" className={className} aria-hidden>
-      <defs>
-        <linearGradient id={`${id}g`} x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stopColor="#22b8d6" stopOpacity=".7" />
-          <stop offset=".5" stopColor="#a5f3fc" stopOpacity=".6" />
-          <stop offset="1" stopColor="#fff" stopOpacity=".95" />
-        </linearGradient>
-        <radialGradient id={`${id}c`}><stop offset="0" stopColor="#fff" /><stop offset="1" stopColor="#67e8f9" /></radialGradient>
-      </defs>
-      {rings.map((r, ri) =>
-        Array.from({ length: r.n }, (_, i) => (
-          <g key={`${ri}-${i}`} transform={`translate(200 200) rotate(${r.off + (360 / r.n) * i + ((i * 7 + ri * 3) % 5) * 2}) translate(0 -6)`} opacity={r.o}>
-            <path d={petalPath(r.L, r.W)} fill={`url(#${id}g)`} stroke="#fff" strokeOpacity=".8" strokeWidth="1.4" />
-            <path d={`M0 ${-r.L * 0.08}L0 ${-r.L * 0.8}M0 ${-r.L * 0.1}Q${-r.W * 0.3} ${-r.L * 0.45} ${-r.W * 0.5} ${-r.L * 0.78}M0 ${-r.L * 0.1}Q${r.W * 0.3} ${-r.L * 0.45} ${r.W * 0.5} ${-r.L * 0.78}`} fill="none" stroke="#fff" strokeOpacity=".4" strokeWidth=".9" />
-          </g>
-        ))
-      )}
-      <circle cx="200" cy="200" r="16" fill={`url(#${id}c)`} />
-    </svg>
-  );
-}
-
-function Leaf({ id, className = "" }: { id: string; className?: string }) {
-  return (
-    <svg viewBox="-60 -190 120 200" className={`pointer-events-none absolute ${className}`} aria-hidden>
-      <defs>
-        <linearGradient id={id} x1="0" y1="1" x2=".4" y2="0">
-          <stop offset="0" stopColor="#22b8d6" stopOpacity=".75" />
-          <stop offset="1" stopColor="#e0fbff" stopOpacity=".85" />
-        </linearGradient>
-      </defs>
-      <path d="M0 0C42 -38 46 -120 0 -184 -46 -120 -42 -38 0 0Z" fill={`url(#${id})`} stroke="#fff" strokeOpacity=".7" strokeWidth="1.5" />
-      <path d="M0 -4L0 -170" stroke="#fff" strokeOpacity=".55" strokeWidth="1.4" fill="none" />
-    </svg>
-  );
-}
-
-function Petal({ className = "", style, tone = "cyan" }: { className?: string; style?: React.CSSProperties; tone?: "cyan" | "pink" }) {
-  const [a, b] = tone === "pink" ? ["#fbcfe8", "#f9a8d4"] : ["#cffafe", "#22d3ee"];
-  return (
-    <svg viewBox="0 0 20 34" className={`bfy-petal pointer-events-none absolute will-change-transform ${className}`} style={style} aria-hidden>
-      <defs><linearGradient id={`ptl-${tone}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={a} /><stop offset="1" stopColor={b} /></linearGradient></defs>
-      <path d="M10 0C22 6 22 24 10 34 -2 24 -2 6 10 0Z" fill={`url(#ptl-${tone})`} opacity=".85" />
-    </svg>
-  );
-}
-
-const PETALS: { l: string; t: string; r: number; s: number; d: number; tone: "cyan" | "pink" }[] = [
-  { l: "30%", t: "14%", r: -40, s: 1.4, d: 0, tone: "cyan" },
-  { l: "12%", t: "52%", r: 70, s: 1.2, d: 1.5, tone: "cyan" },
-  { l: "22%", t: "84%", r: 120, s: 1.5, d: 2, tone: "pink" },
-  { l: "80%", t: "12%", r: 50, s: 1.5, d: 1, tone: "cyan" },
-  { l: "84%", t: "30%", r: -70, s: 1.2, d: 2.5, tone: "pink" },
-  { l: "76%", t: "86%", r: 100, s: 1.2, d: 3, tone: "cyan" },
-];
 
 const label = (c: string) => c.replace(/_/g, " ").replace(/^\w/, (m) => m.toUpperCase());
 
@@ -101,62 +41,48 @@ export default async function Home() {
   if (user.role !== "owner") {
     const { data: gifts, error } = await supabase
       .from("bouquets")
-      .select("id, title, flower_type, flower_items, quantity, flower_color, wrapping_style, ribbon_style, dedication")
-      .eq("status", "published").order("created_at", { ascending: false }).limit(12);
+      .select("id, title, flower_type, flower_items, quantity, flower_color, wrapping_style, ribbon_style, dedication, created_at")
+      .eq("status", "published").order("created_at", { ascending: false }).limit(6);
+    const newCutoff = Date.now() - 48 * 60 * 60 * 1000; // bouquets younger than 48 h show "New"
 
-    const divider = (
+    const miniDivider = (heart = 18) => (
       <div className="mx-auto flex items-center justify-center gap-3" aria-hidden>
-        <span className="h-px w-28 bg-gradient-to-r from-transparent to-primary/50" />
-        <Heart size={20} className="fill-primary text-primary drop-shadow" />
-        <span className="h-px w-28 bg-gradient-to-l from-transparent to-primary/50" />
+        <span className="h-px w-16 bg-gradient-to-r from-transparent to-[#0c7a92]/55 sm:w-20" />
+        <Heart size={heart} className="fill-[#0c7a92] text-[#0c7a92]" />
+        <span className="h-px w-16 bg-gradient-to-l from-transparent to-[#0c7a92]/55 sm:w-20" />
       </div>
     );
 
     return (
-      <div className="relative flex h-dvh flex-col overflow-hidden bg-gradient-to-br from-[#f0fdff] via-[#b6f1f9] to-[#7fe3f1]">
-        <style>{`html,body{height:100%;overflow:hidden}
-@keyframes bfy-drift{0%,100%{transform:translateY(0) rotate(var(--r))}50%{transform:translateY(-14px) rotate(calc(var(--r) + 14deg))}}
-@media (prefers-reduced-motion:reduce){.bfy-petal{animation:none!important}}
-html[data-moving] .bfy-petal{animation-play-state:paused}`}</style>
-
-        {/* soft haze */}
-        <div className="pointer-events-none absolute left-1/2 top-[45%] h-[70vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(closest-side,rgba(255,255,255,0.6),transparent)]" aria-hidden />
-
-        {/* big translucent peonies, leaves and a gentle wave */}
-        <Leaf id="lfa" className="-left-8 top-[30%] hidden w-[140px] rotate-[105deg] sm:block" />
-        <Leaf id="lfb" className="-bottom-6 left-[2%] hidden w-[170px] rotate-[60deg] sm:block" />
-        <Peony id="pa" className="pointer-events-none absolute -left-24 -top-28 w-[300px] -rotate-12 sm:-left-36 sm:-top-44 sm:w-[580px]" />
-        <Peony id="pb" className="pointer-events-none absolute -bottom-28 -right-24 w-[260px] rotate-[20deg] sm:-bottom-48 sm:-right-40 sm:w-[560px]" />
-        <svg className="pointer-events-none absolute inset-x-0 bottom-0 h-[20vh] w-full" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden>
-          <path d="M0 120C240 60 420 200 720 140S1200 60 1440 130V220H0Z" fill="#fff" fillOpacity=".28" />
-          <path d="M0 170C300 110 520 220 820 170S1250 120 1440 175V220H0Z" fill="#a5f3fc" fillOpacity=".4" />
-        </svg>
-
-        {/* drifting petals */}
-        {PETALS.map((p, i) => (
-          <Petal key={i} tone={p.tone} className="hidden sm:block" style={{ left: p.l, top: p.t, width: 20 * p.s, ["--r" as any]: `${p.r}deg`, animation: `bfy-drift ${7 + (i % 3)}s ease-in-out ${p.d}s infinite` }} />
-        ))}
+      <div className="relative flex h-dvh flex-col overflow-hidden">
+        <style>{`html,body{height:100%;overflow:hidden}`}</style>
+        <BloomBackdrop variant="home" />
 
         <MusicPlayer src="/music/home.mp3" />
 
         {/* top bar */}
-        <div className="relative z-10 flex shrink-0 items-center justify-between px-5 py-4 sm:px-10">
-          <span className="flex items-center gap-2.5 rounded-full bg-white/55 px-4 py-2 text-ink shadow-md ring-1 ring-white/80 backdrop-blur-sm">
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 py-4 sm:px-8">
+          <span className="flex items-center gap-2.5 rounded-full bg-white/55 px-4 py-2 text-[#0a5c72] shadow-md ring-1 ring-white/80 backdrop-blur-sm">
             <Flower2 size={22} className="text-pink-500" aria-hidden />
-            <span className="text-sm sm:text-base">Hello, {name} <Heart size={14} className="ml-0.5 inline fill-pink-500 text-pink-500" aria-hidden /></span>
+            <span className="text-sm sm:text-base">Hello, {name} <Heart size={14} className="ml-0.5 inline fill-[#0c7a92] text-[#0c7a92]" aria-hidden /></span>
           </span>
+          <form action={signOut}>
+            <button className="inline-flex items-center gap-2 rounded-full bg-white/60 px-4 py-2 text-sm font-medium text-[#0a5c72] shadow-md ring-1 ring-white/80 backdrop-blur-sm transition hover:bg-white active:scale-95 sm:text-base">
+              <LogOut size={18} aria-hidden /> Sign Out
+            </button>
+          </form>
         </div>
 
         {/* everything below fits the screen height, so the page never scrolls */}
-        <main className="relative z-10 mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col items-center justify-evenly px-6 pb-3 text-center">
+        <main className="relative z-10 mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col items-center justify-evenly px-6 pb-[2vh] pt-16 text-center sm:pt-[2vh]">
           <header>
-            {divider}
-            <h1 className="mt-[1vh]">
-              <span className={`${display.className} block text-[clamp(1.25rem,4vh,3.5rem)] font-bold leading-tight tracking-wide text-ink`}>A Little World</span>
-              <span className={`${script.className} block text-[clamp(1.7rem,6.2vh,5.5rem)] leading-[1.05] text-[#e11d5f] drop-shadow-[0_2px_8px_rgba(255,255,255,0.9)]`}>Made Just for You</span>
+            {miniDivider()}
+            <h1 className="mt-[1.2vh]">
+              <span className={`${display.className} block text-[clamp(1.4rem,5.4vh,3.6rem)] font-normal leading-tight text-[#0a6379]`}>A Little World</span>
+              <span className={`${script.className} block whitespace-nowrap text-[length:clamp(1.9rem,min(9.2vh,calc((100vw-3rem)/7.4)),6rem)] leading-[1.05] text-[#0c7a92]`}>Made Just for You</span>
             </h1>
-            <p className={`${display.className} mt-[1vh] text-[clamp(0.7rem,1.7vh,1.05rem)] text-ink/75`}>Every little thing here was saved with you in mind.</p>
-            <div className="mt-[1vh]">{divider}</div>
+            <p className={`${display.className} mt-[0.6vh] text-[clamp(0.8rem,2.1vh,1.25rem)] text-[#0b6b82]`}>Every little thing here was saved with you in mind.</p>
+            <div className="mt-[1.2vh]">{miniDivider(16)}</div>
           </header>
 
           {error && <p role="alert" className="text-rose">Bouquets couldn't load. Please try again.</p>}
@@ -167,20 +93,25 @@ html[data-moving] .bfy-petal{animation-play-state:paused}`}</style>
           )}
 
           {!!gifts?.length && (
+            // oldest → newest, so the row ends on the latest upload (the one tagged NEW).
+            // To end on the oldest instead, drop the .reverse() and set initialIndex={0}.
             <BouquetCarousel
               titleClass={display.className}
-              items={gifts.map((b) => ({ id: b.id, title: b.title, art: <BouquetDisplay bouquet={b} size={210} /> }))}
+              initialIndex={gifts.length - 1}
+              items={[...gifts].reverse().map((b) => ({ id: b.id, title: b.title, isNew: new Date(b.created_at).getTime() > newCutoff, art: <BouquetDisplay bouquet={b} size={210} /> }))}
             />
           )}
 
+          {/* Prefetch bouquet detail pages for faster navigation */}
+          <div className="hidden">
+            {gifts?.slice(0, 3).map((b) => (
+              <Link key={b.id} href={`/bouquets/${b.id}`} prefetch={true} />
+            ))}
+          </div>
+
           <footer>
-            {divider}
-            <p className={`${display.className} mt-[1vh] text-[clamp(0.8rem,1.9vh,1rem)] italic text-ink/80`}>{footer} <Heart size={15} className="ml-1 inline text-pink-500" aria-hidden /></p>
-            <form action={signOut} className="mt-[1.5vh]">
-              <button className="inline-flex items-center gap-2 rounded-full border border-pink-400/70 bg-white/60 px-6 py-2 text-sm font-medium text-pink-600 shadow-sm transition-colors hover:bg-white hover:shadow-md active:scale-95">
-                <LogOut size={16} aria-hidden /> Sign Out
-              </button>
-            </form>
+            {miniDivider(26)}
+            <p className={`${display.className} mt-[1vh] text-[clamp(0.85rem,2.1vh,1.2rem)] italic text-[#0b6b82]`}>{footer} <Heart size={18} className="ml-1 inline text-[#0b6b82]" aria-hidden /></p>
           </footer>
         </main>
       </div>

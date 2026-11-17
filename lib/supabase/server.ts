@@ -7,7 +7,17 @@ export async function createClient() {
   return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
       getAll: () => store.getAll(),
-      setAll: (list: { name: string; value: string; options?: any }[]) => { try { list.forEach(({ name, value, options }) => store.set(name, value, options)); } catch { /* called from a Server Component; middleware refreshes the session */ } },
+      setAll: (list: { name: string; value: string; options?: any }[]) => {
+        try {
+          list.forEach(({ name, value, options }) => store.set(name, value, options));
+        } catch {
+          /* called from a Server Component; middleware refreshes the session */
+        }
+      },
+    },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
     },
   });
 }

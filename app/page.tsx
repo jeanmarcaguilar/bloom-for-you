@@ -1,8 +1,14 @@
 import { redirect } from "next/navigation";
-import { requireOwner } from "@/lib/auth/guards";
+import { createClient } from "@/lib/supabase/server";
 
-// The dashboard now lives on the owner's one-page /home.
-export default async function AdminOverview() {
-    await requireOwner();
+// Redirect to /home if authenticated, otherwise to /login
+export default async function RootPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
     redirect("/home");
+  } else {
+    redirect("/login");
+  }
 }
