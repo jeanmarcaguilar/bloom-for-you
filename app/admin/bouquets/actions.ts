@@ -17,15 +17,19 @@ const schema = z.object({
   ribbon_style: z.enum(vals(RIBBONS)),
   dedication: z.string().trim().max(300).transform((v) => v || null),
   event_date: z.string().trim().transform((v) => v || null).pipe(z.string().date().nullable()),
+  // Exact moment (UTC ISO) built in the browser from the date + time the sender picked,
+  // so the sender's own timezone (e.g. Asia/Manila) is respected, not the server's.
+  scheduled_at: z.string().trim().optional().transform((v) => v || null).pipe(z.string().datetime().nullable()),
   accessory: z.string().optional().default("none"),
   letter_category: z.string().optional().default("love_note"),
   letter_signature: z.string().optional().default("Forever yours ♡"),
   create_letter: z.string().optional(),
 });
-export type BouquetState = { error?: string; success?: boolean; message?: string };
+export type BouquetState = { error?: string; success?: boolean; message?: string; sentAt?: string; scheduledAt?: string | null };
 
 export async function createBouquet(_: BouquetState, form: FormData): Promise<BouquetState> {
   const owner = await requireOwner();
+  const sentAt = new Date().toISOString(); // the real moment the sender pressed "send"
   const rawData = Object.fromEntries([...form.entries()].filter(([, v]) => typeof v === "string"));
   const p = schema.safeParse(rawData);
   if (!p.success) return { error: p.error.issues[0].message };
@@ -88,7 +92,7 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
       category: d.letter_category || "love_note",
       signature: d.letter_signature || (d.dedication ? `With love, ${d.dedication}` : "Forever yours ♡"),
       status: status,
-      scheduled_at: d.event_date ? new Date(d.event_date).toISOString() : (status === "published" ? new Date().toISOString() : null),
+      scheduled_at: d.scheduled_at ?? (d.event_date ? new Date(d.event_date).toISOString() : sentAt),
     });
     if (!letterError) letterSaved = true;
   }
@@ -114,6 +118,8 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
 
   return {
     success: true,
+    sentAt,
+    scheduledAt: d.scheduled_at,
     message:
       (letterSaved
         ? "Bouquet and Love Letter created together beautifully!"

@@ -156,7 +156,7 @@ export async function notifyRecipientNewBouquet({ bouquetId, senderName }: Param
   const link = `${site}/bouquets/${bouquetId}`;
   const from = senderName || "Someone who loves you";
   const subject = `💐 A new bouquet just bloomed for you`;
-
+  
   for (const r of recipients) {
     const hello = r.name ? `Hi ${esc(r.name)},` : "Hi,";
     const html = renderHtml({ hello, from, link, site });

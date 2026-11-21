@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useDeferredValue, useMemo, useState, type ReactNode } from "react";
+import { useActionState, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Flower2, Palette, Gift, Heart, RotateCcw, Pencil, Check, Sparkles, Star, Mail, BookOpen, Home, ChevronRight, Calendar } from "lucide-react";
 import { createBouquet, type BouquetState } from "./actions";
@@ -7,6 +7,34 @@ import { BOUQUET_TYPES, QUANTITIES, COLORS, WRAPS, RIBBONS, ACCESSORIES, LETTER_
 import BouquetSvg, { Bow, TeddyBearSvg, BalloonSvg, ChocolateBoxSvg, CandleSvg, MacaronBoxSvg, PlushHeartSvg, ButterflySvg, FillersSvg } from "@/components/bouquets/BouquetSvg";
 
 const field = "mt-1 w-full rounded-xl border border-blush bg-white/90 px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition";
+
+/* ── Date/time helpers (all use the sender's own device timezone) ── */
+const pad = (n: number) => String(n).padStart(2, "0");
+const localDateStr = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const localTimeStr = (d = new Date()) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+/** "2026-11-21" + "21:30" → exact UTC instant. Time only → today. Date only → start of that day. */
+function toInstant(date: string, time: string) {
+  if (!date && !time) return "";
+  const dt = new Date(`${date || localDateStr()}T${time || "00:00"}:00`); // no "Z" → parsed as local time
+  return Number.isNaN(dt.getTime()) ? "" : dt.toISOString();
+}
+function fmtTime(t: string) {
+  const [h, m] = t.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+const QUICK_TIMES: { t: string; label?: string }[] = [
+  { t: "06:00", label: "🌅 Good morning · 6:00 AM" },
+  { t: "12:00" },
+  { t: "18:00" },
+  { t: "23:11", label: "🌙 11:11 PM" },
+];
+const chip = (on: boolean) =>
+  `rounded-full border px-2.5 py-0.5 text-[10px] transition ${on
+    ? "border-primary bg-blush/60 text-rose"
+    : "border-blush/60 bg-white/70 text-mute hover:bg-white hover:text-rose"
+  }`;
 
 const pick = (on: boolean) =>
   `group relative flex flex-col items-center justify-between rounded-2xl border p-2 text-xs transition-all duration-200 focus-visible:ring-2 focus-visible:ring-rose ${on
@@ -90,6 +118,8 @@ export default function BouquetForm() {
   const [message, setMessage] = useState("");
   const [dedication, setDedication] = useState("");
   const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [tz, setTz] = useState("");
   const [accessories, setAccessories] = useState<string[]>([]);
   const [letterCategory, setLetterCategory] = useState<string>("love_note");
   const [letterSignature, setLetterSignature] = useState<string>("Forever yours ♡");
@@ -103,6 +133,7 @@ export default function BouquetForm() {
     setMessage("");
     setDedication("");
     setDate("");
+    setTime("");
     setAccessories([]);
     setLetterCategory("love_note");
     setLetterSignature("Forever yours ♡");
@@ -114,6 +145,11 @@ export default function BouquetForm() {
     () => (category === "All" ? BOUQUET_TYPES : BOUQUET_TYPES.filter((t) => (t as any).category === category)),
     [category],
   );
+
+  useEffect(() => {
+    setTz(Intl.DateTimeFormat().resolvedOptions().timeZone || "");
+  }, []);
+  const scheduledAt = toInstant(date, time);
 
   const deferredDedication = useDeferredValue(dedication);
   // Butterflies / fillers are drawn on the flowers; the others sit beside the bouquet.
@@ -273,6 +309,7 @@ export default function BouquetForm() {
                   </span>
                   <span className="font-serif text-[11px] italic text-mute">
                     {date ? new Date(date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : today}
+                    {time && ` · ${fmtTime(time)}`}
                   </span>
                 </div>
 
@@ -299,7 +336,7 @@ export default function BouquetForm() {
       </div>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [s, accessories, previewTab, title, message, letterSignature, letterCategory, date, deferredDedication, today],
+    [s, accessories, previewTab, title, message, letterSignature, letterCategory, date, time, deferredDedication, today],
   );
 
   /* ── Left Column (below top row): Quantity, Color, Wrap, Ribbon, Accessories ── */
@@ -487,6 +524,7 @@ export default function BouquetForm() {
           <input type="hidden" name="letter_category" value={letterCategory} />
           <input type="hidden" name="letter_signature" value={letterSignature} />
           <input type="hidden" name="create_letter" value={createLetter ? "true" : "false"} />
+          <input type="hidden" name="scheduled_at" value={scheduledAt} />
 
           {/* ═══════════════════════════════════════════════════
               TOP ROW: Peony Styles (left) + Preview (right)
@@ -619,6 +657,37 @@ export default function BouquetForm() {
                   </label>
                 </div>
 
+                {/* Send Time */}
+                <div className="mt-3.5">
+                  <label className="block text-sm font-medium text-mute">
+                    Send Time <span className="text-mute/70">(optional)</span>
+                    <input
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      className={field}
+                    />
+                  </label>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <button type="button" onClick={() => setTime(localTimeStr())} className={chip(false)}>
+                      Now
+                    </button>
+                    {QUICK_TIMES.map(({ t, label }) => (
+                      <button key={t} type="button" onClick={() => setTime(t)} className={chip(time === t)}>
+                        {label ?? fmtTime(t)}
+                      </button>
+                    ))}
+                    {time && (
+                      <button type="button" onClick={() => setTime("")} className="text-[10px] text-mute underline hover:text-rose">
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <span className="mt-1 block text-[10px] text-mute">
+                    Saved as the letter&apos;s exact date &amp; time{tz ? ` (${tz})` : ""}. With no date, today is used.
+                  </span>
+                </div>
+
                 {/* Save to Letters Checkbox */}
                 <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-xl border border-blush/60 bg-pink-50/50 p-3 text-xs text-ink transition hover:bg-pink-50">
                   <input
@@ -641,6 +710,22 @@ export default function BouquetForm() {
                 {state.success && (
                   <div role="status" className="mt-3 rounded-xl bg-green-50 p-3 text-sm text-green-800">
                     <p className="font-medium">{state.message || "Bouquet & Love Letter saved!"}</p>
+                    {state.sentAt && (
+                      <p className="mt-1 text-xs">
+                        Sent at{" "}
+                        {new Date(state.sentAt).toLocaleString("en-US", {
+                          month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit",
+                        })}
+                        {state.scheduledAt && (
+                          <>
+                            {" "}· Letter dated{" "}
+                            {new Date(state.scheduledAt).toLocaleString("en-US", {
+                              month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
+                            })}
+                          </>
+                        )}
+                      </p>
+                    )}
                     <p className="mt-1 flex flex-wrap gap-2 text-xs">
                       <Link href="/bouquets" className="underline font-medium text-green-900">
                         View in Bouquets →
