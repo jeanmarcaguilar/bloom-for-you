@@ -711,15 +711,17 @@ export default function BouquetForm() {
                   <div role="status" className="mt-3 rounded-xl bg-green-50 p-3 text-sm text-green-800">
                     <p className="font-medium">{state.message || "Bouquet & Love Letter saved!"}</p>
                     {state.sentAt && (
-                      <p className="mt-1 text-xs">
+                      <p className="mt-1 text-xs" suppressHydrationWarning>
                         Submitted at{" "}
-                        {new Date(state.sentAt).toLocaleString("en-US", {
-                          month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit",
-                        })}
+                        <span suppressHydrationWarning>
+                          {new Date(state.sentAt).toLocaleString("en-US", {
+                            month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit",
+                          })}
+                        </span>
                         {state.emailScheduled && state.scheduledAt && (
                           <>
                             {" "}· Email will send at{" "}
-                            <strong>
+                            <strong suppressHydrationWarning>
                               {new Date(state.scheduledAt).toLocaleString("en-US", {
                                 month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
                               })}
@@ -729,9 +731,11 @@ export default function BouquetForm() {
                         {state.scheduledAt && (
                           <>
                             {" "}· Letter dated{" "}
-                            {new Date(state.scheduledAt).toLocaleString("en-US", {
-                              month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
-                            })}
+                            <span suppressHydrationWarning>
+                              {new Date(state.scheduledAt).toLocaleString("en-US", {
+                                month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
+                              })}
+                            </span>
                           </>
                         )}
                       </p>
