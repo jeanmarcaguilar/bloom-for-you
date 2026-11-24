@@ -712,11 +712,10 @@ export default function BouquetForm() {
                     <p className="font-medium">{state.message || "Bouquet & Love Letter saved!"}</p>
                     {state.sentAt && (
                       <p className="mt-1 text-xs">
-                        Sent at{" "}
+                        Submitted at{" "}
                         {new Date(state.sentAt).toLocaleString("en-US", {
                           month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit",
                         })}
-                        {/* Show scheduled time in the browser's local timezone (not server UTC) */}
                         {state.emailScheduled && state.scheduledAt && (
                           <>
                             {" "}· Email will send at{" "}
@@ -735,6 +734,14 @@ export default function BouquetForm() {
                             })}
                           </>
                         )}
+                      </p>
+                    )}
+                    {/* From / To email info */}
+                    {(state.senderEmail || state.recipientEmail) && (
+                      <p className="mt-1.5 text-xs text-green-700 border-t border-green-200 pt-1.5">
+                        {state.senderEmail && <>✉️ From: <span className="font-mono">{state.senderEmail}</span></>}
+                        {state.senderEmail && state.recipientEmail && <span className="mx-1.5">→</span>}
+                        {state.recipientEmail && <>To: <span className="font-mono">{state.recipientEmail}</span></>}
                       </p>
                     )}
                     <p className="mt-1 flex flex-wrap gap-2 text-xs">

@@ -3,6 +3,8 @@ import { requireUser } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import BouquetSvg from "@/components/bouquets/BouquetSvg";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Bouquets · Bloom for You" };
 export default async function Bouquets() {
   await requireUser();

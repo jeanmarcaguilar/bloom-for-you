@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Love Letters · Bloom for You" };
 const label = (c: string) => c.replace(/_/g, " ").replace(/^\w/, (m) => m.toUpperCase());
 

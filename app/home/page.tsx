@@ -3,6 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+
+// Force dynamic rendering — this page reads cookies (Supabase auth)
+export const runtime = "nodejs";
+export const fetchCache = "force-no-store";
 import { Flower2, Mail, Camera, Gift, Plus, PenLine, LogOut, Eye, Heart, ArrowUpRight, ArrowRight, ChevronRight } from "lucide-react";
 
 const BouquetDisplay = dynamic(() => import("@/components/bouquets/BouquetDisplay"), {

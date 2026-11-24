@@ -26,7 +26,7 @@ const schema = z.object({
   letter_signature: z.string().optional().default("Forever yours ♡"),
   create_letter: z.string().optional(),
 });
-export type BouquetState = { error?: string; success?: boolean; message?: string; sentAt?: string; scheduledAt?: string | null; emailScheduled?: boolean; emailSent?: boolean };
+export type BouquetState = { error?: string; success?: boolean; message?: string; sentAt?: string; scheduledAt?: string | null; emailScheduled?: boolean; emailSent?: boolean; recipientEmail?: string; senderEmail?: string };
 
 export async function createBouquet(_: BouquetState, form: FormData): Promise<BouquetState> {
   const owner = await requireOwner();
@@ -149,12 +149,17 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
     ? " Email scheduled ♡"
     : " (Email notification could not be sent.)";
 
+  const recipientEmail = process.env.RECIPIENT_EMAIL || "(from database)";
+  const senderEmail = process.env.SMTP_USER || "";
+
   return {
     success: true,
     sentAt,
     scheduledAt: d.scheduled_at,
     emailSent,
     emailScheduled,
+    recipientEmail,
+    senderEmail,
     message:
       (letterSaved
         ? "Bouquet and Love Letter created together beautifully!"

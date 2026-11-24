@@ -2,6 +2,8 @@ import { requireOwner } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 async function count(table: string) {
   const supabase = await createClient();
   const { count } = await supabase.from(table).select("*", { count: "exact", head: true });
