@@ -716,6 +716,17 @@ export default function BouquetForm() {
                         {new Date(state.sentAt).toLocaleString("en-US", {
                           month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit",
                         })}
+                        {/* Show scheduled time in the browser's local timezone (not server UTC) */}
+                        {state.emailScheduled && state.scheduledAt && (
+                          <>
+                            {" "}· Email will send at{" "}
+                            <strong>
+                              {new Date(state.scheduledAt).toLocaleString("en-US", {
+                                month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
+                              })}
+                            </strong>
+                          </>
+                        )}
                         {state.scheduledAt && (
                           <>
                             {" "}· Letter dated{" "}
