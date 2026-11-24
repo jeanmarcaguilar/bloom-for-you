@@ -3,6 +3,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { requireOwner } from "@/lib/auth/guards";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { BOUQUET_TYPES, QUANTITIES, WRAPS, RIBBONS, parseAccessories } from "@/lib/bouquet";
 import { notifyRecipientNewBouquet } from "@/lib/email/bouquet-notification";
 
@@ -109,9 +110,11 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
     const isFuture = scheduledMs > nowMs + 30_000; // >30 s ahead = "scheduled"
 
     if (isFuture) {
-      // Enqueue for the cron job to pick up at the right time
+      // Enqueue for the cron job to pick up at the right time.
+      // Must use admin client — scheduled_emails has RLS enabled with no user policies.
       try {
-        const { error: qErr } = await supabase.from("scheduled_emails").insert({
+        const admin = createAdminClient();
+        const { error: qErr } = await admin.from("scheduled_emails").insert({
           bouquet_id: bq.id,
           sender_name: owner.displayName,
           scheduled_at: d.scheduled_at,
