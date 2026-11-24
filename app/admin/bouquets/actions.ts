@@ -97,17 +97,41 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
     if (!letterError) letterSaved = true;
   }
 
-  // Email the recipient. A mail failure must never break bouquet creation.
+  // ── Email / scheduled email ──────────────────────────────────────────────
+  // If the sender picked a future time → enqueue a scheduled_emails job.
+  // If no time (or time is now / in the past) → send immediately.
   let emailSent = false;
+  let emailScheduled = false;
+
   if (bq?.id && status === "published") {
-    try {
-      await notifyRecipientNewBouquet({
-        bouquetId: bq.id,
-        senderName: owner.displayName,
-      });
-      emailSent = true;
-    } catch (err) {
-      console.error("Bouquet email notification failed:", err);
+    const scheduledMs = d.scheduled_at ? new Date(d.scheduled_at).getTime() : 0;
+    const nowMs = Date.now();
+    const isFuture = scheduledMs > nowMs + 30_000; // >30 s ahead = "scheduled"
+
+    if (isFuture) {
+      // Enqueue for the cron job to pick up at the right time
+      try {
+        const { error: qErr } = await supabase.from("scheduled_emails").insert({
+          bouquet_id: bq.id,
+          sender_name: owner.displayName,
+          scheduled_at: d.scheduled_at,
+        });
+        if (qErr) throw qErr;
+        emailScheduled = true;
+      } catch (err) {
+        console.error("Failed to queue scheduled email:", err);
+      }
+    } else {
+      // Send right now (no scheduled_at, or time already passed)
+      try {
+        await notifyRecipientNewBouquet({
+          bouquetId: bq.id,
+          senderName: owner.displayName,
+        });
+        emailSent = true;
+      } catch (err) {
+        console.error("Bouquet email notification failed:", err);
+      }
     }
   }
 
@@ -116,6 +140,12 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
   revalidatePath("/admin");
   revalidatePath("/home");
 
+  const emailMsg = emailSent
+    ? " Email notification sent ♡"
+    : emailScheduled
+    ? ` Email scheduled for ${new Date(d.scheduled_at!).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} ♡`
+    : " (Email notification could not be sent.)";
+
   return {
     success: true,
     sentAt,
@@ -123,7 +153,6 @@ export async function createBouquet(_: BouquetState, form: FormData): Promise<Bo
     message:
       (letterSaved
         ? "Bouquet and Love Letter created together beautifully!"
-        : "Bouquet saved successfully!") +
-      (emailSent ? " Email notification sent ♡" : " (Email notification could not be sent.)"),
+        : "Bouquet saved successfully!") + emailMsg,
   };
 }
